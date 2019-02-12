@@ -1,0 +1,3 @@
+select employeenumber, email
+from employees
+ORDER BY NULLIF(regexp_replace(employeenumber, '\D', '', 'g'), '')::int
