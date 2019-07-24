@@ -1,0 +1,53 @@
+WITH all_activity AS (
+  SELECT 'task'                                                                         AS activity_Type,
+         task_id                                                                        AS activity_PKID,
+         task_subject                                                                   AS activity_Summary,
+         last_action_by                                                                 AS last_Modified_By,
+         modified                                                                       AS last_Modified_Date,
+         to_char((now() - modified), 'HH24 hrs MI "mins" SS "secs" "ago..."')           AS time_Diffs,
+         concat(last_action_by, ' just created the TASK: "', task_subject, '" ',
+                (to_char((now() - modified), 'HH24 hrs MI "mins" SS "secs" "ago..."'))) AS activity_Msg
+  FROM task
+  WHERE modified >= NOW() - INTERVAL '24 hours'
+  UNION ALL
+
+  SELECT 'project'                                                                      AS activity_Type,
+         proj_id                                                                        AS activity_PKID,
+         proj_name                                                                      AS activity_Summary,
+         last_action_by                                                                 AS last_Modified_By,
+         modified                                                                       AS last_Modified_Date,
+         to_char((now() - modified), 'HH24 hrs MI "mins" SS "secs" "ago..."')           AS time_Diffs,
+         concat(last_action_by, ' just created the PROJECT: "', proj_name, '" ',
+                (to_char((now() - modified), 'HH24 hrs MI "mins" SS "secs" "ago..."'))) AS activity_Msg
+  FROM project
+  WHERE modified >= NOW() - INTERVAL '24 hours'
+  UNION ALL
+
+  SELECT 'comment'                                                                               AS activity_Type,
+         comment_id                                                                              AS activity_PKID,
+         comment_body                                                                            AS activity_Summary,
+         who                                                                                     AS last_Modified_By,
+         comment_timestamp                                                                       AS last_Modified_Date,
+         to_char((now() - comment_timestamp), 'HH24 hrs MI "mins" SS "secs" "ago..."')           AS time_Diffs,
+         concat(who, ' just commented: "', comment_body, '" ',
+                (to_char((now() - comment_timestamp), 'HH24 hrs MI "mins" SS "secs" "ago..."'))) AS activity_Msg
+  FROM comments
+  WHERE comment_timestamp >= NOW() - INTERVAL '24 hours'
+  UNION ALL
+
+  SELECT 'attachment'                                                                          AS activity_Type,
+         attachment_id                                                                         AS activity_PKID,
+         attachment_name                                                                       AS activity_Summary,
+         added_by                                                                              AS last_Modified_By,
+         attachment_time                                                                       AS last_Modified_Date,
+         to_char((now() - attachment_time), 'HH24 hrs MI "mins" SS "secs" "ago..."')           AS time_Diffs,
+         concat(added_by, ' just attached: "', attachment_name, '" ',
+                (to_char((now() - attachment_time), 'HH24 hrs MI "mins" SS "secs" "ago..."'))) AS activity_Msg
+  FROM attachments
+  WHERE attachment_time >= NOW() - INTERVAL '24 hours'
+
+)
+SELECT
+   *,
+   ROW_NUMBER() over (ORDER BY last_Modified_Date DESC) as rowNum
+FROM all_activity
